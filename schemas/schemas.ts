@@ -14,3 +14,12 @@ export const schemaActivateCard=joi.object({
     cardholderName:joi.string().required(),
     expirationDate:joi.string().length(5).required()
 })
+
+export const schemaGetBalance=joi.object({
+    id:joi.number().required()
+})
+
+export const schemaBlockUnblock=joi.object({
+    id:joi.number().required(),
+    password:joi.string().required()
+})

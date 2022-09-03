@@ -4,13 +4,29 @@ import cryptr from 'cryptr'
 import bcrypt from 'bcrypt'
 import { findByApiKey } from '../repositories/companyRepository.js';
 import { findById } from '../repositories/employeeRepository.js';
-import { findByTypeAndEmployeeId,TransactionTypes,insert, update, findByCardDetails } from '../repositories/cardRepository.js';
+import { findByTypeAndEmployeeId,TransactionTypes,insert, update, findByCardDetails,CardUpdateData,findById as findCardById } from '../repositories/cardRepository.js';
+import {findByCardId as findRechargesByCardId} from '../repositories/rechargeRepository.js'
+import {findByCardId as findPaymentsByCardId} from '../repositories/paymentRepository.js'
 
 function notFoundError(entity:string) {
 	return {
 		type: "NotFound",
 		message: `${entity} não encontrado(a)!`
 	};
+}
+
+async function getCardId(id:number){
+    const cardData:CardUpdateData=await findCardById(id)
+
+    if(!cardData) throw notFoundError("Cartão")
+
+    return cardData
+}
+
+async function checkPasswordAndDate(password:string,hashPassword:string,expirationDate:string) {
+    if(!bcrypt.compareSync(password, hashPassword)) throw {type:"Unauthorized",message:"Senha incorreta"}
+
+    if(dayjs(expirationDate).isBefore(dayjs(), 'month')) throw {type:"Unauthorized",message:"Cartão já expirado"}
 }
 
 export async function insertCard(employeeId:number,APIKey:string,name:string,isVirtual:boolean,type:TransactionTypes){
@@ -57,17 +73,46 @@ export async function activateCard(number:string,cardholderName:string,expiratio
 
     const cardData=await findByCardDetails(number,cardholderName,expirationDate)
 
-    if(!cardData) throw notFoundError("Cartão")
-
-    if(cardData.password) throw {type:"Conflict",message:"Cartão já ativado"}
+    if(dayjs(expirationDate).isBefore(dayjs(), 'month')) throw {type:"Unauthorized",message:"Cartão já expirado"}
 
     const cardCvv=cryptr.decrypt(cardData.securityCode)
     if(cardCvv!==cvv) throw {type:"Unauthorized",message:"Código de segurança incorreto"}
 
-    
-    if(cardData.expirationDate.isBefore(dayjs(), 'month')) throw {type:"Unauthorized",message:"Cartão já expirado"}
-
     const hashPassword=bcrypt.hashSync(password,10)
 
     await update(cardData.id,{isBlocked:false,password:hashPassword})
+}
+
+export async function totalBalance(id:number){
+    const recharges=await findRechargesByCardId(id)
+    const payments=await findPaymentsByCardId(id)
+
+    const balance:number=recharges.reduce((acc:number,{amount})=>acc+amount,0)-payments.reduce((acc:number,{amount})=>acc+amount,0)
+    
+    const response={
+        balance,
+        transactions:payments,
+        recharges
+    }
+    return response
+}
+
+export async function blockCardService(id:number,password:string){
+    const {password:hashPassword,expirationDate,isBlocked}=await getCardId(id)
+
+    checkPasswordAndDate(password,hashPassword,expirationDate)
+
+    if(isBlocked) throw {type:"Conflict",message:"Cartão já bloqueado"}
+    
+    await update(id,{isBlocked:true})
+}
+
+export async function unblockCardService(id:number,password:string){
+    const {password:hashPassword,expirationDate,isBlocked}=await getCardId(id)
+
+    checkPasswordAndDate(password,hashPassword,expirationDate)
+
+    if(!isBlocked) throw {type:"Conflict",message:"Cartão já desbloqueado"}
+
+    await update(id,{isBlocked:false})
 }
