@@ -7,7 +7,7 @@ const cardRouter=Router();
 
 cardRouter.post('/createcard',schemaValidateMiddleware(schemaCreateCard),createCard)
 cardRouter.put('/activatecard',schemaValidateMiddleware(schemaActivateCard),updateCard)
-cardRouter.get('/getBalance/:cardId',getBalance)
+cardRouter.get('/balance/:cardId',getBalance)
 cardRouter.put('/altercard/:type',schemaValidateMiddleware(schemaBlockUnblock),blockUnblockCard)
 
 

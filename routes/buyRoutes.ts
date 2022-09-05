@@ -6,7 +6,7 @@ import { localPayment, rechargeCard,onlinePayment } from '../controllers/buyCont
 const buyRouter=Router();
 
 buyRouter.post('/recharge',schemaValidateMiddleware(schemaRecharge),rechargeCard)
-buyRouter.post('/localPayments:businessId',schemaValidateMiddleware(schemaPayment),localPayment)
-buyRouter.post('/onlinePayments:businessId',schemaValidateMiddleware(schemaOnlinePayment),onlinePayment)
+buyRouter.post('/localPayments/:businessId',schemaValidateMiddleware(schemaPayment),localPayment)
+buyRouter.post('/onlinePayments/:businessId',schemaValidateMiddleware(schemaOnlinePayment),onlinePayment)
 
 export default buyRouter
