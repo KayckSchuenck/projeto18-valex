@@ -1,15 +1,14 @@
 import {Router} from 'express'
 import schemaValidateMiddleware from "../middlewares/schemaMiddleware.js";
 import { schemaCreateCard,schemaActivateCard,schemaBlockUnblock } from '../schemas/schemas.js';
-import { createCard,updateCard,getBalance, blockCard, unblockCard } from "../controllers/cardController.js";
+import { createCard,updateCard,getBalance, blockUnblockCard } from "../controllers/cardController.js";
 
 const cardRouter=Router();
 
-cardRouter.post('/createCard',schemaValidateMiddleware(schemaCreateCard),createCard)
-cardRouter.put('/activateCard',schemaValidateMiddleware(schemaActivateCard),updateCard)
-cardRouter.get('/getBalance:cardId',getBalance)
-cardRouter.put('/blockCard',schemaValidateMiddleware(schemaBlockUnblock),blockCard)
-cardRouter.put('/unblockCard',schemaValidateMiddleware(schemaBlockUnblock),unblockCard)
+cardRouter.post('/createcard',schemaValidateMiddleware(schemaCreateCard),createCard)
+cardRouter.put('/activatecard',schemaValidateMiddleware(schemaActivateCard),updateCard)
+cardRouter.get('/getBalance/:cardId',getBalance)
+cardRouter.put('/altercard/:type',schemaValidateMiddleware(schemaBlockUnblock),blockUnblockCard)
 
 
 export default cardRouter

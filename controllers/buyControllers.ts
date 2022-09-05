@@ -1,5 +1,5 @@
 import { Request,Response } from "express";
-import {paymentService, rechargeService, onlinePaymentService} from "../services/buyServices";
+import {paymentService, rechargeService, onlinePaymentService} from "../services/buyServices.js";
 
 export async function rechargeCard(req:Request,res:Response){
     const APIKey: string = req.headers["x-api-key"].toString()

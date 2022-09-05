@@ -1,13 +1,13 @@
-import {insertCard,activateCard, totalBalance,blockCardService} from "../services/cardService";
+import {insertCard,activateCard, totalBalance,blockCardService,unblockCardService} from "../services/cardService.js";
 import { Request,Response } from "express";
 
 export async function createCard(req:Request,res:Response){
     const APIKey: string = req.headers["x-api-key"].toString()
     const {name,type,isVirtual,employeeId}=req.body
 
-    await insertCard(employeeId,APIKey,name,isVirtual,type)
+    const cvv=await insertCard(employeeId,APIKey,name,isVirtual,type)
 
-    res.status(201).send("Cartão criado com sucesso")
+    res.status(201).send(cvv)
 }
 
 export async function updateCard(req:Request,res:Response) {
@@ -26,18 +26,16 @@ export async function getBalance(req:Request,res:Response) {
     res.status(200).send(result)
 }
 
-export async function blockCard(req:Request,res:Response) {
+export async function blockUnblockCard(req:Request,res:Response) {
     const {password,id}=req.body
+    const {type}=req.params
 
-    await blockCardService(id,password)
-
-    res.status(200).send("Cartão bloqueado com sucesso")
-}
-
-export async function unblockCard(req:Request,res:Response) {
-    const {password,id}=req.body
-
-    await blockCardService(id,password)
-
-    res.status(200).send("Cartão desbloqueado com sucesso")
+    if(type==='block'){
+        await blockCardService(id,password)
+        return res.status(200).send("Cartão bloqueado com sucesso")
+    }
+    if(type==='unblock'){
+        await unblockCardService(id,password)
+        return res.status(200).send("Cartão desbloqueado com sucesso")
+    }
 }
