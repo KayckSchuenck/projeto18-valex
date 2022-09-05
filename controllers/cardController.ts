@@ -15,13 +15,13 @@ export async function updateCard(req:Request,res:Response) {
 
     await activateCard(number,cardholderName,expirationDate,password,cvv)
 
-    res.status(201).send("Cartão ativado com sucesso")
+    res.status(200).send("Cartão ativado com sucesso")
 }
 
 export async function getBalance(req:Request,res:Response) {
-    const {id}=req.body
+    const {cardId}=req.params
 
-    const result=await totalBalance(id)
+    const result=await totalBalance(Number(cardId))
 
     res.status(200).send(result)
 }
@@ -31,7 +31,7 @@ export async function blockCard(req:Request,res:Response) {
 
     await blockCardService(id,password)
 
-    res.status(201).send("Cartão bloqueado com sucesso")
+    res.status(200).send("Cartão bloqueado com sucesso")
 }
 
 export async function unblockCard(req:Request,res:Response) {
@@ -39,5 +39,5 @@ export async function unblockCard(req:Request,res:Response) {
 
     await blockCardService(id,password)
 
-    res.status(201).send("Cartão desbloqueado com sucesso")
+    res.status(200).send("Cartão desbloqueado com sucesso")
 }

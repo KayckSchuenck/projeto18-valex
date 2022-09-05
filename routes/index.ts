@@ -1,11 +1,9 @@
 import { Router } from "express";
-import buyRouter from "./buyRoutes";
-import cardRouter from "./cardRoutes";
-import rechargeRouter from "./rechargeRoutes";
+import buyRouter from "./buyRoutes.js";
+import cardRouter from "./cardRoutes.js";
 
 const router = Router();
 router.use(buyRouter)
 router.use(cardRouter)
-router.use(rechargeRouter)
 
 export default router;

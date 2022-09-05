@@ -7,35 +7,28 @@ import { findById } from '../repositories/employeeRepository.js';
 import { findByTypeAndEmployeeId,TransactionTypes,insert, update, findByCardDetails,CardUpdateData,findById as findCardById } from '../repositories/cardRepository.js';
 import {findByCardId as findRechargesByCardId} from '../repositories/rechargeRepository.js'
 import {findByCardId as findPaymentsByCardId} from '../repositories/paymentRepository.js'
+import notFoundError from '../middlewares/notFoundError.js'
 
-function notFoundError(entity:string) {
-	return {
-		type: "NotFound",
-		message: `${entity} não encontrado(a)!`
-	};
-}
 
-async function getCardId(id:number){
+async function getDataAndCheckPasswordAndDate(id:number,password:string) {
     const cardData:CardUpdateData=await findCardById(id)
+    if(!cardData) notFoundError("Cartão")
 
-    if(!cardData) throw notFoundError("Cartão")
+    if(!bcrypt.compareSync(password, cardData.password)) throw {type:"Unauthorized",message:"Senha incorreta"}
+
+    if(dayjs(cardData.expirationDate).isBefore(dayjs(), 'month')) throw {type:"Unauthorized",message:"Cartão já expirado"}
 
     return cardData
 }
 
-async function checkPasswordAndDate(password:string,hashPassword:string,expirationDate:string) {
-    if(!bcrypt.compareSync(password, hashPassword)) throw {type:"Unauthorized",message:"Senha incorreta"}
-
-    if(dayjs(expirationDate).isBefore(dayjs(), 'month')) throw {type:"Unauthorized",message:"Cartão já expirado"}
-}
 
 export async function insertCard(employeeId:number,APIKey:string,name:string,isVirtual:boolean,type:TransactionTypes){
 
-    const cardExists=await findByApiKey(APIKey)
-    if(!cardExists) throw notFoundError("Chave da empresa")
+    const companyKeyExists=await findByApiKey(APIKey)
+    if(!companyKeyExists) notFoundError("Chave da empresa")
 
     const employeeExists=await findById(employeeId)
-    if(!employeeExists) throw notFoundError("Funcionário")
+    if(!employeeExists) notFoundError("Funcionário")
 
     const employeeCardTypeExists=await findByTypeAndEmployeeId(type,employeeId)
     if(!employeeCardTypeExists) throw {type:"Conflict",message:"Funcionário já possui cartão desse tipo"}
@@ -98,9 +91,7 @@ export async function totalBalance(id:number){
 }
 
 export async function blockCardService(id:number,password:string){
-    const {password:hashPassword,expirationDate,isBlocked}=await getCardId(id)
-
-    checkPasswordAndDate(password,hashPassword,expirationDate)
+    const {isBlocked}=await getDataAndCheckPasswordAndDate(id,password)
 
     if(isBlocked) throw {type:"Conflict",message:"Cartão já bloqueado"}
     
@@ -108,9 +99,7 @@ export async function blockCardService(id:number,password:string){
 }
 
 export async function unblockCardService(id:number,password:string){
-    const {password:hashPassword,expirationDate,isBlocked}=await getCardId(id)
-
-    checkPasswordAndDate(password,hashPassword,expirationDate)
+    const {isBlocked}=await getDataAndCheckPasswordAndDate(id,password)
 
     if(!isBlocked) throw {type:"Conflict",message:"Cartão já desbloqueado"}
 

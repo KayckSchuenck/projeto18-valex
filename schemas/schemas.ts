@@ -1,25 +1,40 @@
-import joi from 'joi'
+import {number,string,object,boolean} from 'joi'
 
-export const schemaCreateCard=joi.object({
-    type:joi.string().valid('groceries', 'restaurant', 'transport', 'education', 'health').required(),
-    name:joi.string().required(),
-    isVirtual:joi.boolean().required(),
-    employeeId:joi.number().required()
+export const schemaCreateCard=object({
+    type:string().valid('groceries', 'restaurant', 'transport', 'education', 'health').required(),
+    name:string().required(),
+    isVirtual:boolean().required(),
+    employeeId:number().required()
 })
 
-export const schemaActivateCard=joi.object({
-    password:joi.string().length(4).required(),
-    cvv:joi.string().required(),
-    number:joi.string().required(),
-    cardholderName:joi.string().required(),
-    expirationDate:joi.string().length(5).required()
+export const schemaActivateCard=object({
+    password:string().length(4).required(),
+    cvv:string().required(),
+    number:string().required(),
+    cardholderName:string().required(),
+    expirationDate:string().length(5).required()
 })
 
-export const schemaGetBalance=joi.object({
-    id:joi.number().required()
+export const schemaBlockUnblock=object({
+    id:number().required(),
+    password:string().required()
 })
 
-export const schemaBlockUnblock=joi.object({
-    id:joi.number().required(),
-    password:joi.string().required()
+export const schemaRecharge=object({
+    id:number().required(),
+    amount:number().min(0.01).required()
+})
+
+export const schemaPayment=object({
+    id:number().required(),
+    amount:number().min(0.01).required(),
+    password:string().required()
+})
+
+export const schemaOnlinePayment=object({
+    amount:number().min(0.01).required(),
+    cvv:string().required(),
+    number:string().required(),
+    cardholderName:string().required(),
+    expirationDate:string().length(5).required()
 })
